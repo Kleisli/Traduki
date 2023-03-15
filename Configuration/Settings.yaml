@@ -1,0 +1,25 @@
+Kleisli:
+  Traduki:
+    sourceLanguage: 'de'
+    export:
+      directory: 'Data/Traduki/Export/'
+      workspace: 'live'
+      documentTypeFilter: 'Neos.Neos:Document'
+      contentTypeFilter: '!Neos.Neos:Document'
+    import:
+      directory: 'Data/Traduki/Import/'
+    backup:
+      directory: 'Data/Traduki/Backup/'
+
+
+    languageDimension: 'language'
+    # format versions
+    # 1.0 : flat export, all nodes in one hierarchy
+    # 2.0 : all documents in one hierarchy, nested content
+    format_version: '2.0'
+    debug: true
+
+Neos:
+  Fusion:
+    defaultContext:
+      'Traduki.Xliff': 'Kleisli\Traduki\Eel\Helper\XliffHelper'
