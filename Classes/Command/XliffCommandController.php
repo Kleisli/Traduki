@@ -35,22 +35,18 @@ class XliffCommandController extends CommandController
     protected string $importDirectory;
 
     /**
-     * An example command
+     * Merge all xliff files of a package into one file
      *
-     * The comment of this command method is also used for Flow's help screens. The first line should give a very short
-     * summary about what the command does. Then, after an empty line, you should explain in more detail what the command
-     * does. You might also give some usage example.
+     * The source language is taken from the setting Kleisli.Traduki.sourceLanguage
      *
-     * It is important to document the parameters with param tags, because that information will also appear in the help
-     * screen.
+     * @param string $targetLanguage The target language for the translation. e.g. fr
+     * @param string $packageKey e.g. Vendor.Package
      *
-     * @param string $packageKey This argument is required
-     * @param string $languageCode This argument is optional
      * @return void
      */
-    public function exportCommand(string $packageKey, string $languageCode)
+    public function exportCommand(string $targetLanguage, string $packageKey)
     {
-        $exportDirectory = $this->exportDirectory.'Xliff/'.$languageCode;
+        $exportDirectory = $this->exportDirectory.'Xliff/'.$targetLanguage;
         $filePath = $exportDirectory.'/'.$packageKey.'.xlf';
         Files::createDirectoryRecursively($exportDirectory);
 
@@ -59,7 +55,7 @@ class XliffCommandController extends CommandController
         $xlfWriter->setIndent(true);
         $xlfWriter->setIndentString('    ');
 
-        $xlfWriter = $this->xliffService->mergePackageTranslations($xlfWriter, $packageKey, $languageCode);
+        $xlfWriter = $this->xliffService->mergePackageTranslations($xlfWriter, $packageKey, $targetLanguage);
 
         $xlfWriter->flush();
 
@@ -68,40 +64,43 @@ class XliffCommandController extends CommandController
 
 
     /**
-     * An example command
+     * Split and import a merged xliff files of a package
      *
-     * The comment of this command method is also used for Flow's help screens. The first line should give a very short
-     * summary about what the command does. Then, after an empty line, you should explain in more detail what the command
-     * does. You might also give some usage example.
+     * By default, all the files in the subfolder "Entities" in the import directory are imported. This
+     * can be restricted to a single targetLanguage and package
      *
-     * It is important to document the parameters with param tags, because that information will also appear in the help
-     * screen.
+     * @param string $targetLanguage The target language for the translation. e.g. fr
+     * @param string $packageKey e.g. Vendor.Package
      *
      * @return void
      */
-    public function importCommand()
+    public function importCommand(string $targetLanguage = '', string $packageKey = '')
     {
-        $this->xliffService->importPackageTranslations($this->importDirectory);
+        $importDirectory = $this->importDirectory.'Xliff';
+        if($targetLanguage){
+            $importDirectory .= '/'.$targetLanguage;
+        }
+        $suffix = ($packageKey != '') ? $packageKey.'.xlf' : '.xlf';
+
+        $this->xliffService->importPackageTranslations($importDirectory, $suffix);
 
     }
 
     /**
-     * An example command
+     * Update already exported xliff files to track changed source language label
      *
-     * The comment of this command method is also used for Flow's help screens. The first line should give a very short
-     * summary about what the command does. Then, after an empty line, you should explain in more detail what the command
-     * does. You might also give some usage example.
+     * After merging and exporting the xliff files of a package you can run xliff:update
+     * to add new translation units (-> state="new") and detect translation units where
+     * the content of the source language changed (-> state="needs-translation")
      *
-     * It is important to document the parameters with param tags, because that information will also appear in the help
-     * screen.
+     * @param string $targetLanguage The target language for the translation. e.g. fr
+     * @param string $packageKey e.g. Vendor.Package
      *
-     * @param string $packageKey This argument is required
-     * @param string $languageCode This argument is optional
      * @return void
      */
-    public function updateCommand(string $packageKey, string $languageCode)
+    public function updateCommand(string $targetLanguage = '', string $packageKey = '')
     {
-        $this->xliffService->updatePackageTranslations($packageKey, $languageCode);
+        $this->xliffService->updatePackageTranslations($packageKey, $targetLanguage);
 
         $this->outputLine('Updated Xliff files in '.$this->xliffService->getTranslationsPath($packageKey, $languageCode));
     }

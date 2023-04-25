@@ -268,12 +268,13 @@ class XliffService
      *
      *
      * @param string $importDirectory the directory from where to import the xlf files
+     * @param string $suffix file suffix
      *
      * @return void
      */
-    public function importPackageTranslations($importDirectory): void
+    public function importPackageTranslations(string $importDirectory, string $suffix = '.xlf'): void
     {
-        foreach (Files::readDirectoryRecursively($importDirectory, '.xlf') as $importFilePath) {
+        foreach (Files::readDirectoryRecursively($importDirectory, $suffix) as $importFilePath) {
             $importDocument = new \DOMDocument();
             $importDocument->load($importFilePath);
             $fileElements = $importDocument->getElementsByTagName('file');

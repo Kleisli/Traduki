@@ -36,9 +36,13 @@ class NodesCommandController extends CommandController
     protected $importService;
 
     /**
-     * Export sites content (e.g. nodes:export --filename "acme.com.xml" --source-language "en" --target-language "cz")
+     * Export document and content nodes content
      *
-     * This command exports a specific site including all content into an XML format.
+     * This command exports a specific node tree including all content into an XML format.
+     * To filter Document or Content nodeTypes to be exported, use the settings
+     * - Kleisli.Traduki.export.documentTypeFilter
+     * - Kleisli.Traduki.export.contentTypeFilter
+     *
      *
      * @param string $startingPoint The node with which to start the export: as identifier or the path relative to the site node.
      * @param string $sourceLanguage The language to use as base for the export.
@@ -90,6 +94,10 @@ class NodesCommandController extends CommandController
         $this->outputLine('Peak memory used: %s', [$this->humanReadableFileSize(memory_get_peak_usage())]);
     }
 
+    /**
+     * @param $size
+     * @return string
+     */
     private function humanReadableFileSize($size)
     {
         if ($size >= 1073741824) {

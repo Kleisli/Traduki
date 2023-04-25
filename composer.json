@@ -5,7 +5,9 @@
     "require": {
         "neos/flow": "*",
         "ext-xmlwriter": "*",
-        "ext-xmlreader": "*"
+        "ext-xmlreader": "*",
+        "ext-dom": "*",
+        "milly/tools": "@dev"
     },
     "autoload": {
         "psr-4": {
