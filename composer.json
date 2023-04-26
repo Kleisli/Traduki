@@ -1,5 +1,5 @@
 {
-    "description": "",
+    "description": "Export/import translations of nodes, xliff files and entities in Neos CMS and Flow applications",
     "type": "neos-package",
     "name": "kleisli/traduki",
     "require": {
