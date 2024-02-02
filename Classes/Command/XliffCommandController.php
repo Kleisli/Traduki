@@ -79,11 +79,11 @@ class XliffCommandController extends CommandController
     }
 
     /**
-     * Update already exported xliff files to track changed source language label
+     * Create new and update already existing xliff files in a target language to track changed source language labels
      *
-     * After merging and exporting the xliff files of a package you can run xliff:update
-     * to add new translation units (-> state="new") and detect translation units where
-     * the content of the source language changed (-> state="needs-translation")
+     * New translation units in the source language, are added to the
+     * target language xliff with state="new" and translation units where
+     * the content of the source language changed are attributed with state="needs-translation"
      *
      * @param string $targetLanguage The target language for the translation. e.g. fr
      * @param string $packageKey e.g. Vendor.Package

@@ -4,9 +4,9 @@ Kleisli:
     export:
       directory: 'Data/Traduki/Export/'
       workspace: 'live'
-      documentTypeFilter:
+      documentTypeFilterPresets:
         default: 'Neos.Neos:Document'
-      contentTypeFilter:
+      contentTypeFilterPresets:
         default: '!Neos.Neos:Document'
     import:
       directory: 'Data/Traduki/Import/'

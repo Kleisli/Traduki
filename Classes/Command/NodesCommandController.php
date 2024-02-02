@@ -36,39 +36,40 @@ class NodesCommandController extends CommandController
     protected $importService;
 
     /**
-     * Export document and content nodes content
+     * Export document and content nodes
      *
      * This command exports a specific node tree including all content into an XML format.
      * To filter Document or Content nodeTypes to be exported, use the settings
-     * - Kleisli.Traduki.export.documentTypeFilter
-     * - Kleisli.Traduki.export.contentTypeFilter
+     * - Kleisli.Traduki.export.documentTypeFilterPreset
+     * - Kleisli.Traduki.export.contentTypeFilterPreset
+     * and add your own filter presets
      *
      *
      * @param string $startingPoint The node with which to start the export: as identifier or the path relative to the site node.
-     * @param string|null $sourceLanguage The language to use as base for the export.
-     * @param string|null $targetLanguage The target language for the translation, optional.
-     * @param string|null $filename Path and filename to the XML file to create.
-     * @param string|null $modifiedAfter
-     * @param boolean $ignoreHidden
-     * @param string $documentTypeFilterPreset
-     * @param string $contentTypeFilterPreset
+     * @param string|null $sourceLanguage overwrite the default source language to use as base for the export.
+     * @param string|null $targetLanguage The target language for the translation
+     * @param string|null $filename Path and filename to the XML file to create. default will be generated from the starting point node label
+     * @param string|null $modifiedAfter export only nodes modified after this date
+     * @param boolean $ignoreHidden do not export hidden nodes, default: true
+     * @param string $documentFilter preset key of the document type filter, default: default
+     * @param string $contentFilter preset key of the content type filter, default: default
      * @return void
      * @throws \Exception
      */
     public function exportCommand(string $startingPoint, string $sourceLanguage = null, string $targetLanguage = null,
                                   string $filename = null, string $modifiedAfter = null, bool $ignoreHidden = true,
-                                  string $documentTypeFilterPreset = 'default', string $contentTypeFilterPreset = 'default')
+                                  string $documentFilter = 'default', string $contentFilter = 'default')
     {
         if ($modifiedAfter !== null) {
             $modifiedAfter = new \DateTime($modifiedAfter);
         }
 
         $this->exportService->initialize($startingPoint, $sourceLanguage, $targetLanguage, $modifiedAfter, $ignoreHidden,
-            $documentTypeFilterPreset, $contentTypeFilterPreset);
+            $documentFilter, $contentFilter);
 
         try {
             if ($filename === null) {
-                $filename = ($documentTypeFilterPreset != 'default' ? $documentTypeFilterPreset.'_' : '').$this->exportService->getStartingPointNode()->getProperty('uriPathSegment').'.xml';
+                $filename = ($documentFilter != 'default' ? $documentFilter.'_' : '').$this->exportService->getStartingPointNode()->getProperty('uriPathSegment').'.xml';
             }
 
             $this->exportService->exportToFile('Nodes/'.$targetLanguage.'/'.$filename);

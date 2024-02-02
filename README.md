@@ -5,8 +5,8 @@ Export/import translations of nodes, xliff files and entities in Neos CMS and Fl
 - `sourceLanguage` the default language all the translations are based on
 - `export.directory` the directory all exports are written to, default: 'Data/Traduki/Export/'
 - `export.workspace` the workspace to read the nodes fron, default: 'live' 
-- `export.documentTypeFilter` the filter for document nodes to export, default: 'Neos.Neos:Document'
-- `export.contentTypeFilter`  the filter for content nodes to export, default: '!Neos.Neos:Document'
+- `export.documentTypeFilterPresets` filter options for document nodes to be exported, default: 'Neos.Neos:Document'
+- `export.contentTypeFilterPresets` filter options for content nodes to de exported, default: '!Neos.Neos:Document'
 - `import.directory` the directory all imports will be read from, default: 'Data/Traduki/Import/'
 
 
@@ -24,24 +24,29 @@ makes it easier for translators to translate the content.
 #### nodes:export
 ```
 USAGE:
-  ./flow nodes:export [<options>] <starting point> <source language>
+  ./flow nodes:export [<options>] <starting point>
 
 ARGUMENTS:
   --starting-point     The node with which to start the export: as identifier
                        or the path relative to the site node.
-  --source-language    The language to use as base for the export.
 
 OPTIONS:
-  --target-language    The target language for the translation, optional.
-  --filename           Path and filename to the XML file to create.
-  --modified-after     
-  --ignore-hidden      
+  --source-language    overwrite the default source language to use as base for
+                       the export.
+  --target-language    The target language for the translation
+  --filename           Path and filename to the XML file to create. default
+                       will be generated from the starting point node label
+  --modified-after     export only nodes modified after this date
+  --ignore-hidden      do not export hidden nodes, default: true
+  --document-filter    preset key of the document type filter, default: default
+  --content-filter     preset key of the content type filter, default: default
 
 DESCRIPTION:
   This command exports a specific node tree including all content into an XML format.
   To filter Document or Content nodeTypes to be exported, use the settings
-  - Kleisli.Traduki.export.documentTypeFilter
-  - Kleisli.Traduki.export.contentTypeFilter
+  - Kleisli.Traduki.export.documentTypeFilterPreset
+  - Kleisli.Traduki.export.contentTypeFilterPreset
+  and add your own filter presets
 
 ```
 
@@ -79,12 +84,14 @@ DESCRIPTION:
 
 ### Translate Xliff
 #### xliff:export
+Update and Merge all xliff files of a package into one file
+
 ```
 USAGE:
   ./flow xliff:export <target language> <package key>
 
 ARGUMENTS:
-  --target-language    The target language for the translation. e.g. fr
+  --target-language    The target language code for the translation. e.g. fr
   --package-key        e.g. Vendor.Package
 
 DESCRIPTION:
@@ -92,20 +99,25 @@ DESCRIPTION:
 
 ```
 #### xliff:import
+Split and import a merged xliff files of a package
 ```
 USAGE:
   ./flow xliff:import [<options>]
 
 OPTIONS:
-  --target-language    The target language for the translation. e.g. fr
-  --package-key        e.g. Vendor.Package
+  --sub-folder-path    restrict importing to a subfolder path within the
+                       Xliff-Import directory
+  --file-name-suffix   e.g. "Vendor.Package.xlf", default value is ".xlf
 
 DESCRIPTION:
-  By default, all the files in the subfolder "Entities" in the import directory are imported. This
-  can be restricted to a single targetLanguage and package
+  By default, all the files in the folder "Xliff" in the configured import directory are imported.
+  This can be restricted to a single targetLanguage and package
+
 
 ```
 #### xliff:update
+Create new and update already existing xliff files in a target language to track changed source language labels
+
 ```
 USAGE:
   ./flow xliff:update [<options>]
@@ -115,9 +127,8 @@ OPTIONS:
   --package-key        e.g. Vendor.Package
 
 DESCRIPTION:
-  After merging and exporting the xliff files of a package you can run xliff:update
-  to add new translation units (-> state="new") and detect translation units where
-  the content of the source language changed (-> state="needs-translation")
+  New translation units in the source language, are added to the target language xliff with state="new" 
+  and translation units where the content of the source language changed are attributed with state="needs-translation"
 
 ```
 

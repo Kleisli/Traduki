@@ -2,16 +2,6 @@
 
 namespace Kleisli\Traduki\Service;
 
-/*
- * This file is part of the Neos.Neos package.
- *
- * (c) Contributors of the Neos Project - www.neos.io
- *
- * This package is Open Source Software. For the full copyright and license
- * information, please view the LICENSE file which was distributed with this
- * source code.
- */
-
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\I18n\Xliff\Service\XliffReader;
 use Neos\Flow\Package\PackageManager;
@@ -19,7 +9,6 @@ use Neos\Utility\Files;
 use Neos\Flow\I18n\Service as LocalizationService;
 
 /**
- * The XLIFF service provides methods to find XLIFF files and parse them to json
  *
  * @Flow\Scope("singleton")
  */
@@ -31,8 +20,6 @@ class XliffService
 
     /**
      * A relative path for translations inside the package resources.
-     *
-     * @var string
      */
     protected string $xliffBasePath = 'Private/Translations/';
 
@@ -47,9 +34,6 @@ class XliffService
 
 
     /**
-     * Collect all sources found in the given package as array (key = source, value = true)
-     * If sourcesToBeIncluded is an array, only those sources are returned what match the wildcard-patterns in the
-     * array-values
      *
      * @param \XMLWriter $xmlWriter
      * @param string $packageKey 'MyVendor.PackageName'
@@ -114,9 +98,6 @@ class XliffService
     }
 
     /**
-     * Collect all sources found in the given package as array (key = source, value = true)
-     * If sourcesToBeIncluded is an array, only those sources are returned what match the wildcard-patterns in the
-     * array-values
      *
      * @param string $packageKey 'MyVendor.PackageName'
      * @param string $languageCode like 'en', 'de' or 'fr'

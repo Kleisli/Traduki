@@ -100,11 +100,11 @@ class ExportService extends AbstractService
         $this->ignoreHidden = $ignoreHidden;
         $this->documentTypeFilter = $this->configurationManager->getConfiguration(
             ConfigurationManager::CONFIGURATION_TYPE_SETTINGS,
-            "Kleisli.Traduki.export.documentTypeFilter.".$documentTypeFilterPreset
+            "Kleisli.Traduki.export.documentTypeFilterPresets.".$documentTypeFilterPreset
         );
         $this->contentTypeFilter = $this->configurationManager->getConfiguration(
             ConfigurationManager::CONFIGURATION_TYPE_SETTINGS,
-            "Kleisli.Traduki.export.contentTypeFilter.".$contentTypeFilterPreset
+            "Kleisli.Traduki.export.contentTypeFilterPresets.".$contentTypeFilterPreset
         );
 
         $allowedContentCombinations = $this->getAllowedContentCombinationsForSourceLanguage($this->sourceLanguage);
