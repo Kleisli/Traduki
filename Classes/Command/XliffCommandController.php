@@ -16,37 +16,30 @@ use Neos\Utility\Files;
 class XliffCommandController extends CommandController
 {
 
-    /**
-     * @Flow\Inject
-     * @var XliffService
-     */
-    protected $xliffService;
+    #[Flow\Inject]
+    protected XliffService $xliffService;
 
-    /**
-     * @Flow\InjectConfiguration(path = "export.directory")
-     * @var string
-     */
+    #[Flow\InjectConfiguration(path: "export.directory")]
     protected string $exportDirectory;
 
-    /**
-     * @Flow\InjectConfiguration(path = "import.directory")
-     * @var string
-     */
+    #[Flow\InjectConfiguration(path: "import.directory")]
     protected string $importDirectory;
 
     /**
-     * Merge all xliff files of a package into one file
+     * Update and Merge all xliff files of a package into one file
      *
      * The source language is taken from the setting Kleisli.Traduki.sourceLanguage
      *
-     * @param string $targetLanguage The target language for the translation. e.g. fr
+     * @param string $targetLanguage The target language code for the translation. e.g. fr
      * @param string $packageKey e.g. Vendor.Package
      *
      * @return void
      */
-    public function exportCommand(string $targetLanguage, string $packageKey)
+    public function exportCommand(string $targetLanguage, string $packageKey): void
     {
-        $exportDirectory = $this->exportDirectory.'Xliff/'.$targetLanguage;
+        $this->updateCommand($targetLanguage, $packageKey);
+
+        $exportDirectory = $this->exportDirectory.'Xliff/'.str_replace('-', '/', $targetLanguage);
         $filePath = $exportDirectory.'/'.$packageKey.'.xlf';
         Files::createDirectoryRecursively($exportDirectory);
 
@@ -59,30 +52,29 @@ class XliffCommandController extends CommandController
 
         $xlfWriter->flush();
 
-        $this->outputLine('The Xliff file was written to '. $filePath);
+        $this->outputLine('The merged Xliff file was written to '. $filePath);
     }
 
 
     /**
      * Split and import a merged xliff files of a package
      *
-     * By default, all the files in the subfolder "Entities" in the import directory are imported. This
-     * can be restricted to a single targetLanguage and package
+     * By default, all the files in the folder "Xliff" in the configured import directory are imported.
+     * This can be restricted to a single targetLanguage and package
      *
-     * @param string $targetLanguage The target language for the translation. e.g. fr
-     * @param string $packageKey e.g. Vendor.Package
+     * @param string|null $subFolderPath restrict importing to a subfolder path within the Xliff-Import directory
+     * @param string $fileNameSuffix e.g. "Vendor.Package.xlf", default value is ".xlf"
      *
      * @return void
      */
-    public function importCommand(string $targetLanguage = '', string $packageKey = '')
+    public function importCommand(?string $subFolderPath = null, string $fileNameSuffix = '.xlf'): void
     {
         $importDirectory = $this->importDirectory.'Xliff';
-        if($targetLanguage){
-            $importDirectory .= '/'.$targetLanguage;
+        if($subFolderPath){
+            $importDirectory .= '/'.$subFolderPath;
         }
-        $suffix = ($packageKey != '') ? $packageKey.'.xlf' : '.xlf';
 
-        $this->xliffService->importPackageTranslations($importDirectory, $suffix);
+        $this->xliffService->importPackageTranslations($importDirectory, $fileNameSuffix);
 
     }
 
@@ -98,10 +90,10 @@ class XliffCommandController extends CommandController
      *
      * @return void
      */
-    public function updateCommand(string $targetLanguage = '', string $packageKey = '')
+    public function updateCommand(string $targetLanguage = '', string $packageKey = ''): void
     {
         $this->xliffService->updatePackageTranslations($packageKey, $targetLanguage);
 
-        $this->outputLine('Updated Xliff files in '.$this->xliffService->getTranslationsPath($packageKey, $languageCode));
+        $this->outputLine('Updated Xliff files in '.$this->xliffService->getTranslationsPath($packageKey, str_replace('-', '/', $targetLanguage)));
     }
 }

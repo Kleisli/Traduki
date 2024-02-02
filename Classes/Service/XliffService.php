@@ -13,15 +13,10 @@ namespace Kleisli\Traduki\Service;
  */
 
 use Neos\Flow\Annotations as Flow;
-use Neos\Cache\Frontend\VariableFrontend;
-use Neos\Flow\I18n\Xliff\Service\XliffFileProvider;
 use Neos\Flow\I18n\Xliff\Service\XliffReader;
-use Neos\Flow\Package\PackageInterface;
 use Neos\Flow\Package\PackageManager;
 use Neos\Utility\Files;
-use Neos\Flow\I18n\Locale;
 use Neos\Flow\I18n\Service as LocalizationService;
-use Neos\Utility\Unicode\Functions as UnicodeFunctions;
 
 /**
  * The XLIFF service provides methods to find XLIFF files and parse them to json
@@ -30,10 +25,8 @@ use Neos\Utility\Unicode\Functions as UnicodeFunctions;
  */
 class XliffService
 {
-    /**
-     * @Flow\InjectConfiguration(path = "sourceLanguage")
-     * @var string
-     */
+
+    #[Flow\InjectConfiguration(path: "sourceLanguage")]
     protected string $sourceLanguage;
 
     /**
@@ -41,38 +34,16 @@ class XliffService
      *
      * @var string
      */
-    protected $xliffBasePath = 'Private/Translations/';
+    protected string $xliffBasePath = 'Private/Translations/';
 
-    /**
-     * @Flow\Inject
-     * @var XliffReader
-     */
-    protected $xliffReader;
+    #[Flow\Inject]
+    protected XliffReader $xliffReader;
 
-    /**
-     * @Flow\Inject
-     * @var LocalizationService
-     */
-    protected $localizationService;
+    #[Flow\Inject]
+    protected LocalizationService $localizationService;
 
-
-    /**
-     * @Flow\InjectConfiguration(path="userInterface.translation.autoInclude", package="Neos.Neos")
-     * @var array
-     */
-    protected $packagesRegisteredForAutoInclusion = [];
-
-    /**
-     * @Flow\Inject
-     * @var XliffFileProvider
-     */
-    protected $xliffFileProvider;
-
-    /**
-     * @Flow\Inject
-     * @var PackageManager
-     */
-    protected $packageManager;
+    #[Flow\Inject]
+    protected PackageManager $packageManager;
 
 
     /**
@@ -95,14 +66,15 @@ class XliffService
         $package = $this->packageManager->getPackage($packageKey);
         $sources = [];
         $translationPath = $package->getResourcesPath() . $this->xliffBasePath;
+        $languageFolder = str_replace('-', '/', $languageCode);
 
-        if (!is_dir($translationPath. $languageCode)) {
+        if (!is_dir($translationPath. $languageFolder)) {
             $xmlWriter->endElement(); // xliff
             $xmlWriter->endDocument();
             return $xmlWriter;
         }
 
-        foreach (Files::readDirectoryRecursively($translationPath. $languageCode, '.xlf') as $filePath) {
+        foreach (Files::readDirectoryRecursively($translationPath. $languageFolder, '.xlf') as $filePath) {
             //remove translation path from path
             $source = trim(str_replace($translationPath, '', $filePath), '/');
             //remove language part from path
@@ -155,11 +127,12 @@ class XliffService
         $sourcePath = $this->getTranslationsPath($packageKey, $this->sourceLanguage);
         $translationPath = $this->getTranslationsPath($packageKey);
 
-        Files::createDirectoryRecursively($translationPath .$languageCode);
+        $targetLanguageFolder = str_replace('-', '/', $languageCode);
+        Files::createDirectoryRecursively($translationPath .$targetLanguageFolder);
 
         foreach (Files::readDirectoryRecursively($sourcePath, '.xlf') as $sourceFilePath) {
 
-            $targetFilePath = str_replace('/'.$this->sourceLanguage.'/', '/'.$languageCode.'/', $sourceFilePath);
+            $targetFilePath = str_replace('/'.$this->sourceLanguage.'/', '/'.$targetLanguageFolder.'/', $sourceFilePath);
             Files::createDirectoryRecursively(pathinfo($targetFilePath, PATHINFO_DIRNAME));
 
             if(!is_file($targetFilePath)){
@@ -199,7 +172,6 @@ class XliffService
                 $xlfWriter->writeAttribute('version', '1.2');
                 $xlfWriter->writeAttribute('xmlns', 'urn:oasis:names:tc:xliff:document:1.2');
 
-                $targetLanguageAttribute = new \DOMAttr('target-language', $languageCode);
                 $xlfWriter->startElement('file');
                 $xlfWriter->writeAttribute('original', $this->getOriginalString($translationPath, $sourceFilePath));
                 $xlfWriter->writeAttribute('product-name', $packageKey);
@@ -285,7 +257,7 @@ class XliffService
                 $targetLanguage = $fileElement->getAttribute('target-language');
 
                 $package = $this->packageManager->getPackage($packageKey);
-                $targetFilePath = $package->getResourcesPath() . $this->xliffBasePath . $targetLanguage . '/' . $filePath . '.xlf';
+                $targetFilePath = $package->getResourcesPath() . $this->xliffBasePath . str_replace(['-', '_'], '/', $targetLanguage) . '/' . $filePath . '.xlf';
 
                 $targetDirectory = pathinfo($targetFilePath, PATHINFO_DIRNAME);
                 // create directory if not exists
@@ -300,7 +272,9 @@ class XliffService
                 $xlfWriter->writeAttribute('version', '1.2');
                 $xlfWriter->writeAttribute('xmlns', 'urn:oasis:names:tc:xliff:document:1.2');
 
-                $xlfWriter->writeRaw("\n".simplexml_import_dom($fileElement)->asXML());
+                $xlfWriter->writeRaw("\n    ");
+                $xlfWriter->writeRaw(simplexml_import_dom($fileElement)->asXML());
+                $xlfWriter->writeRaw("\n");
 
                 $xlfWriter->endElement();
 
@@ -345,7 +319,7 @@ class XliffService
      */
     public function getTranslationsPath($packageKey, $languageCode = ''){
         $package = $this->packageManager->getPackage($packageKey);
-        return $package->getResourcesPath() . $this->xliffBasePath . $languageCode;
+        return $package->getResourcesPath() . $this->xliffBasePath . str_replace('-', '/', $languageCode);
     }
 
     /**

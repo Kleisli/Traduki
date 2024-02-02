@@ -4,7 +4,6 @@ namespace Kleisli\Traduki\ViewHelpers;
 use Doctrine\Common\Collections\Collection;
 use Kleisli\Traduki\Service\XliffService;
 use Neos\Flow\I18n\Translator;
-use Neos\Flow\I18n\Xliff\Service\XliffFileProvider;
 use Neos\Flow\Package\PackageManager;
 use Neos\FluidAdaptor\Core\ViewHelper\AbstractViewHelper;
 use Neos\Flow\Annotations as Flow;

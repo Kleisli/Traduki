@@ -45,29 +45,35 @@ class NodesCommandController extends CommandController
      *
      *
      * @param string $startingPoint The node with which to start the export: as identifier or the path relative to the site node.
-     * @param string $sourceLanguage The language to use as base for the export.
+     * @param string|null $sourceLanguage The language to use as base for the export.
      * @param string|null $targetLanguage The target language for the translation, optional.
      * @param string|null $filename Path and filename to the XML file to create.
      * @param string|null $modifiedAfter
      * @param boolean $ignoreHidden
+     * @param string $documentTypeFilterPreset
+     * @param string $contentTypeFilterPreset
      * @return void
      * @throws \Exception
      */
-    public function exportCommand(string $startingPoint, string $sourceLanguage, string $targetLanguage = null, string $filename = null, string $modifiedAfter = null, bool $ignoreHidden = true)
+    public function exportCommand(string $startingPoint, string $sourceLanguage = null, string $targetLanguage = null,
+                                  string $filename = null, string $modifiedAfter = null, bool $ignoreHidden = true,
+                                  string $documentTypeFilterPreset = 'default', string $contentTypeFilterPreset = 'default')
     {
         if ($modifiedAfter !== null) {
             $modifiedAfter = new \DateTime($modifiedAfter);
         }
 
-        $this->exportService->initialize($startingPoint, $sourceLanguage, $targetLanguage, $modifiedAfter, $ignoreHidden);
+        $this->exportService->initialize($startingPoint, $sourceLanguage, $targetLanguage, $modifiedAfter, $ignoreHidden,
+            $documentTypeFilterPreset, $contentTypeFilterPreset);
 
         try {
             if ($filename === null) {
-                $this->output($this->exportService->exportToString());
-            } else {
-                $this->exportService->exportToFile('Nodes/'.$targetLanguage.'/'.$filename);
-                $this->outputLine('<success>The tree starting at "%s" has been exported to "%s".</success>', [$this->exportService->getStartingPointNode()->getLabel(), $this->exportService->getExportDirectory().'Nodes/'.$targetLanguage.'/'.$filename]);
+                $filename = ($documentTypeFilterPreset != 'default' ? $documentTypeFilterPreset.'_' : '').$this->exportService->getStartingPointNode()->getProperty('uriPathSegment').'.xml';
             }
+
+            $this->exportService->exportToFile('Nodes/'.$targetLanguage.'/'.$filename);
+            $this->outputLine('<success>The tree starting at "%s" has been exported to "%s".</success>', [$this->exportService->getStartingPointNode()->getLabel(), $this->exportService->getExportDirectory().'Nodes/'.$targetLanguage.'/'.$filename]);
+
         } catch (\Exception $exception) {
             $this->outputLine('<error>%s</error>', [$exception->getMessage()]);
         }

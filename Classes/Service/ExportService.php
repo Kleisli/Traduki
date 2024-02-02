@@ -11,9 +11,12 @@ namespace Kleisli\Traduki\Service;
 use Neos\ContentRepository\Domain\Model\NodeData;
 use Neos\ContentRepository\Domain\Model\NodeInterface;
 use Neos\ContentRepository\Domain\Repository\NodeDataRepository;
+use Neos\ContentRepository\Domain\Service\ContentDimensionCombinator;
 use Neos\ContentRepository\Domain\Service\ContextFactoryInterface;
+use Neos\ContentRepository\Domain\Service\NodeTypeManager;
 use Neos\ContentRepository\Domain\Utility\NodePaths;
 use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Configuration\ConfigurationManager;
 use Neos\Neos\Domain\Model\Site;
 use Neos\Neos\Domain\Service\ContentContext;
 use Neos\Utility\Files;
@@ -25,23 +28,9 @@ use Neos\Utility\Files;
  */
 class ExportService extends AbstractService
 {
-    /**
-     * @Flow\InjectConfiguration(path = "export.workspace")
-     * @var string
-     */
+
+    #[Flow\InjectConfiguration(path: "export.workspace")]
     protected string $sourceWorkspaceName;
-
-    /**
-     * @Flow\InjectConfiguration(path = "export.documentTypeFilter")
-     * @var string
-     */
-    protected string $documentTypeFilter;
-
-    /**
-     * @Flow\InjectConfiguration(path = "export.contentTypeFilter")
-     * @var string
-     */
-    protected string $contentTypeFilter;
 
     /**
      * The XMLWriter that is used to construct the export.
@@ -50,95 +39,73 @@ class ExportService extends AbstractService
      */
     protected $xmlWriter;
 
-    /**
-     * @Flow\Inject
-     * @var \Neos\ContentRepository\Domain\Service\NodeTypeManager
-     */
-    protected $nodeTypeManager;
+    #[Flow\Inject]
+    protected NodeTypeManager $nodeTypeManager;
 
-    /**
-     * @Flow\Inject
-     * @var NodeDataRepository
-     */
-    protected $nodeDataRepository;
+    #[Flow\Inject]
+    protected NodeDataRepository $nodeDataRepository;
 
-    /**
-     * @Flow\Inject
-     * @var \Neos\ContentRepository\Domain\Service\ContentDimensionCombinator
-     */
-    protected $contentDimensionCombinator;
+    #[Flow\Inject]
+    protected ContentDimensionCombinator $contentDimensionCombinator;
 
-    /**
-     * @var ContentContext
-     *
-     */
+    #[Flow\Inject]
+    protected ConfigurationManager $configurationManager;
+
     protected ContentContext $contentContext;
 
-    /**
-     * @var string
-     */
     protected string $startingPoint;
 
-    /**
-     * @var NodeInterface
-     */
     protected NodeInterface $startingPointNode;
 
-    /**
-     * @var Site
-     */
     protected Site $site;
 
-    /**
-     * @var string
-     */
     protected string $sourceLanguage;
 
-    /**
-     * @var array
-     */
+    #[Flow\InjectConfiguration(path: "sourceLanguage")]
+    protected string $defaultSourceLanguage;
+
     protected array $sourceContexts = [];
 
-    /**
-     * @var string|null
-     */
     protected ?string $targetLanguage;
 
-    /**
-     * @var \DateTime|null
-     */
     protected ?\DateTime $modifiedAfter;
 
-    /**
-     * @var bool
-     */
     protected bool $ignoreHidden;
 
-    /**
-     * @var int
-     */
+    protected string $documentTypeFilter;
+
+    protected string $contentTypeFilter;
+
     protected int $depth;
 
     /**
      * @param string $startingPoint
-     * @param string $sourceLanguage
+     * @param string|null $sourceLanguage
      * @param string|null $targetLanguage
      * @param \DateTime|null $modifiedAfter
      * @param bool $ignoreHidden
-     * @param string $documentTypeFilter
-     * @param int $depth
      */
     public function initialize(string $startingPoint,
-                               string $sourceLanguage,
+                               string $sourceLanguage = null,
                                string $targetLanguage = null,
                                \DateTime $modifiedAfter = null,
-                               bool $ignoreHidden = true)
+                               bool $ignoreHidden = true,
+                               $documentTypeFilterPreset = 'default',
+                               $contentTypeFilterPreset = 'default')
     {
         $this->startingPoint = $startingPoint;
-        $this->sourceLanguage = $sourceLanguage;
+        $this->sourceLanguage = $sourceLanguage ?? $this->defaultSourceLanguage;
         $this->targetLanguage = $targetLanguage;
         $this->modifiedAfter = $modifiedAfter;
         $this->ignoreHidden = $ignoreHidden;
+        $this->documentTypeFilter = $this->configurationManager->getConfiguration(
+            ConfigurationManager::CONFIGURATION_TYPE_SETTINGS,
+            "Kleisli.Traduki.export.documentTypeFilter.".$documentTypeFilterPreset
+        );
+        $this->contentTypeFilter = $this->configurationManager->getConfiguration(
+            ConfigurationManager::CONFIGURATION_TYPE_SETTINGS,
+            "Kleisli.Traduki.export.contentTypeFilter.".$contentTypeFilterPreset
+        );
 
         $allowedContentCombinations = $this->getAllowedContentCombinationsForSourceLanguage($this->sourceLanguage);
         /** @var ContentContext $contentContext */

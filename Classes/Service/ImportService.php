@@ -352,6 +352,7 @@ class ImportService extends AbstractService
         $sourceDimensionValues = array_merge($translatedData['dimensionValues'], [$this->languageDimension => [$this->sourceLanguage]]);
         ksort($sourceDimensionValues);
 
+
         /** @var \Neos\ContentRepository\Domain\Model\NodeInterface $currentNodeVariant */
         $currentNodeVariant = array_reduce($this->currentNodeVariants, function ($carry, \Neos\ContentRepository\Domain\Model\NodeInterface $tmpCurrentNodeVariant) use ($targetDimensionValues, $sourceDimensionValues) {
 
