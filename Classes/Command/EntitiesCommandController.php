@@ -198,7 +198,7 @@ class EntitiesCommandController extends CommandController
      * @return string
      */
     private function classToFilename($class){
-        return substr(str_replace('\\', '_', $class), 1);
+        return str_replace('\\', '_', $class);
     }
 
 }

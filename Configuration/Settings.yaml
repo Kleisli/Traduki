@@ -25,3 +25,4 @@ Neos:
   Fusion:
     defaultContext:
       'Traduki.Xliff': 'Kleisli\Traduki\Eel\Helper\XliffHelper'
+      'Traduki.Entity': 'Kleisli\Traduki\Eel\Helper\EntityHelper'
